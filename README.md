@@ -48,20 +48,41 @@ npm run dev
    values ('din.epost@eksempel.no', 'Ditt navn', 'admin', '#2f5d62');
    ```
 
-### 2. Sett opp innlogging med kode
+### 2. Sett opp e-post (SMTP) – nødvendig
 
-1. **Authentication → Sign In / Providers → Email**: sørg for at Email er på. Sett *Email OTP Length* til 6.
-2. **Authentication → Email Templates → Magic Link**: bytt innholdet til noe som viser koden, f.eks.:
+Supabase sin innebygde e-post sender bare til medlemmer av Supabase-prosjektet, og malene kan ikke endres uten egen SMTP. Bruk f.eks. **Brevo** (gratis, 300 e-poster/dag, krever ikke eget domene):
+
+1. Lag konto på [brevo.com](https://www.brevo.com).
+2. **Senders, Domains & Dedicated IPs → Senders → Add a sender**: navn `Mors kalender` og din e-post. Bekreft via e-posten du får.
+3. **SMTP & API → SMTP → Generate a new SMTP key**. Kopier nøkkelen (vises bare én gang) og notér «Login».
+4. I Supabase: **Authentication → Emails → Set up SMTP** (eller Project Settings → Authentication → SMTP):
+
+   | Felt | Verdi |
+   |---|---|
+   | Enable custom SMTP | på |
+   | Sender email | e-posten du bekreftet i Brevo |
+   | Sender name | `Mors kalender` |
+   | Host | `smtp-relay.brevo.com` |
+   | Port | `587` |
+   | Username | «Login» fra Brevo |
+   | Password | SMTP-nøkkelen |
+
+### 3. Sett opp innlogging med kode
+
+1. **Authentication → Sign In / Providers → Email**: sørg for at Email er på. Sett *Email OTP Length* til 6 og *Email OTP Expiration* til 3600. La «Allow new users to sign up» stå på – tilgangen styres av `members`-tabellen.
+2. **Authentication → Emails → Magic link or OTP**: sett emne til `Din kode til Mors kalender`, velg **Source** og bytt innholdet med:
    ```html
    <h2>Innlogging til Mors kalender</h2>
    <p>Koden din er: <strong>{{ .Token }}</strong></p>
    <p>Koden gjelder i en time. Har du ikke bedt om den, kan du se bort fra e-posten.</p>
    ```
+   Gjør det samme for **Confirm signup** (brukes første gang noen logger inn).
    (Kode fungerer bedre enn lenke når appen ligger på hjemskjermen.)
-3. **Authentication → URL Configuration**: sett *Site URL* til adressen appen får (se steg 3), f.eks. `https://bernt-maker.github.io/Samhandling-/`.
-4. Anbefalt: Supabase sin innebygde e-posttjeneste har lav grense på antall e-poster per time. For stabil drift, sett opp egen SMTP under **Project Settings → Authentication → SMTP** (f.eks. Resend eller Brevo, gratis for små volum).
+3. **Authentication → URL Configuration**: sett *Site URL* til adressen appen får (se steg 4), f.eks. `https://bernt-maker.github.io/Samhandling-/`.
 
-### 3. Publiser appen (GitHub Pages)
+De første e-postene kan havne i søppelpost – be alle sjekke der og markere som «ikke søppel».
+
+### 4. Publiser appen (GitHub Pages)
 
 1. I GitHub-repoet: **Settings → Pages → Source: GitHub Actions**.
 2. **Settings → Secrets and variables → Actions → Variables**, legg til:
@@ -69,7 +90,7 @@ npm run dev
    - `VITE_SUPABASE_ANON_KEY` – fra samme sted, *anon / publishable key* (denne er laget for å være offentlig; tilgangen styres av databasereglene).
 3. Slå sammen koden til `main`. Appen bygges og publiseres automatisk på `https://<brukernavn>.github.io/Samhandling-/`.
 
-### 4. Første gang
+### 5. Første gang
 
 1. Åpne appen, logg inn med e-posten din.
 2. Lag **familiepassordet** (minst 12 tegn, gjerne en setning).
