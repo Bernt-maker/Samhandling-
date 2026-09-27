@@ -9,6 +9,9 @@ import type {
   CommentRow,
   Duty,
   DutyRow,
+  EventRow,
+  LogEvent,
+  LogEventData,
   Member,
   TableName,
 } from '../types';
@@ -17,7 +20,23 @@ const aad = {
   appointment: (id: string) => `appointments:${id}`,
   duty: (id: string) => `duties:${id}`,
   comment: (id: string) => `comments:${id}`,
+  event: (id: string) => `events:${id}`,
 };
+
+async function openEvent(key: CryptoKey, r: EventRow): Promise<LogEvent | null> {
+  try {
+    return {
+      id: r.id,
+      occurredAt: r.occurred_at,
+      data: await decryptJson<LogEventData>(key, r, aad.event(r.id)),
+      createdBy: r.created_by ?? '',
+      updatedBy: r.updated_by ?? '',
+      updatedAt: r.updated_at ?? '',
+    };
+  } catch {
+    return null;
+  }
+}
 
 async function openAppointment(key: CryptoKey, r: AppointmentRow): Promise<Appointment | null> {
   try {
@@ -75,6 +94,9 @@ export function useFamilyData(backend: Backend, key: CryptoKey) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [duties, setDuties] = useState<Duty[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [events, setEvents] = useState<LogEvent[]>([]);
+  /** Tabellen for loggen finnes ikke ennå (migreringen er ikke kjørt). */
+  const [eventsMissing, setEventsMissing] = useState(false);
   const [sync, setSync] = useState<SyncState>('laster');
   const [lastChange, setLastChange] = useState<number>(0);
   const alive = useRef(true);
@@ -97,6 +119,26 @@ export function useFamilyData(backend: Backend, key: CryptoKey) {
           const list = await Promise.all(rows.map((r) => openDuty(key, r)));
           list.sort((a, b) => a.startDate.localeCompare(b.startDate));
           if (alive.current) setDuties(list);
+        } else if (table === 'events') {
+          let rows: EventRow[];
+          try {
+            rows = await backend.listEvents();
+          } catch (e) {
+            // Mangler tabellen, skal resten av appen virke som før
+            if (/events|relation|schema cache/i.test((e as Error).message)) {
+              if (alive.current) setEventsMissing(true);
+              return;
+            }
+            throw e;
+          }
+          const list = (await Promise.all(rows.map((r) => openEvent(key, r)))).filter(
+            (x): x is LogEvent => x !== null,
+          );
+          list.sort((a, b) => b.occurredAt.localeCompare(a.occurredAt));
+          if (alive.current) {
+            setEvents(list);
+            setEventsMissing(false);
+          }
         } else {
           const rows = await backend.listComments();
           const list = (await Promise.all(rows.map((r) => openComment(key, r)))).filter(
@@ -113,7 +155,7 @@ export function useFamilyData(backend: Backend, key: CryptoKey) {
   );
 
   const loadAll = useCallback(async () => {
-    await Promise.all((['members', 'appointments', 'duties', 'comments'] as TableName[]).map(load));
+    await Promise.all((['members', 'appointments', 'duties', 'comments', 'events'] as TableName[]).map(load));
   }, [load]);
 
   useEffect(() => {
@@ -189,6 +231,16 @@ export function useFamilyData(backend: Backend, key: CryptoKey) {
         await backend.deleteComment(id);
         await load('comments');
       },
+      async saveEvent(id: string | null, occurredAt: string, data: LogEventData) {
+        const rowId = id ?? crypto.randomUUID();
+        const sealed = await encryptJson(key, data, aad.event(rowId));
+        await backend.saveEvent({ id: rowId, occurred_at: occurredAt, ...sealed });
+        await load('events');
+      },
+      async deleteEvent(id: string) {
+        await backend.deleteEvent(id);
+        await load('events');
+      },
       async saveMember(m: Omit<Member, 'id'> & { id?: string }) {
         await backend.saveMember(m);
         await load('members');
@@ -202,7 +254,7 @@ export function useFamilyData(backend: Backend, key: CryptoKey) {
     [backend, key, load, loadAll],
   );
 
-  return { members, appointments, duties, comments, sync, lastChange, actions };
+  return { members, appointments, duties, comments, events, eventsMissing, sync, lastChange, actions };
 }
 
 export type FamilyData = ReturnType<typeof useFamilyData>;

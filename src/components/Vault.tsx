@@ -3,7 +3,7 @@ import type { Backend } from '../lib/backend';
 import { createVault, openVault, passphraseProblem } from '../lib/crypto';
 import { saveKey } from '../lib/keystore';
 import type { Member, VaultRow } from '../types';
-import { Centered } from './ui';
+import { Centered, PasswordInput } from './ui';
 
 export function CreateVault({ backend, me, onDone }: { backend: Backend; me: Member; onDone: (k: CryptoKey) => void }) {
   const [pass, setPass] = useState('');
@@ -44,11 +44,11 @@ export function CreateVault({ backend, me, onDone }: { backend: Backend; me: Mem
       <form onSubmit={submit} className="stack">
         <label>
           Familiepassord (minst 12 tegn – gjerne en setning)
-          <input type="password" autoComplete="new-password" value={pass} onChange={(e) => setPass(e.target.value)} />
+          <PasswordInput autoComplete="new-password" value={pass} onChange={setPass} />
         </label>
         <label>
           Gjenta passordet
-          <input type="password" autoComplete="new-password" value={pass2} onChange={(e) => setPass2(e.target.value)} />
+          <PasswordInput autoComplete="new-password" value={pass2} onChange={setPass2} />
         </label>
         <label className="check">
           <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
@@ -98,7 +98,7 @@ export function Unlock({
       <form onSubmit={submit} className="stack">
         <label>
           Familiepassord
-          <input type="password" autoComplete="current-password" autoFocus value={pass} onChange={(e) => setPass(e.target.value)} />
+          <PasswordInput autoComplete="current-password" autoFocus value={pass} onChange={setPass} />
         </label>
         <label className="check">
           <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />

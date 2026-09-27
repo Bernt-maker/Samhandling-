@@ -3,6 +3,7 @@
 En felles app for familien med:
 
 - **Kalender** for mors timer – lege, tannlege, audiolog, øyelege, sykehus, fysioterapi m.m. – med hvem som følger henne, transport, notater og kommentarer etter timen.
+- **Logg** over hendelser – sykehusinnleggelser, legevakt, telefonsamtaler, besøk, medisinendringer – med søk, filter og markering av viktige hendelser.
 - **Vaktordning** for fire søsken – hvem som har ansvaret hvilken uke, med automatisk turnus og enkel bytting.
 - **Deling med lege i familien** – egen rolle som kan lese alt og skrive kommentarer, men ikke endre timer eller vakter.
 - **Sanntid** – når én skriver noe inn, oppdateres det hos alle andre med én gang.
@@ -102,6 +103,16 @@ De første e-postene kan havne i søppelpost – be alle sjekke der og markere s
 
 - **iPhone:** Åpne lenken i Safari → Del-knappen → «Legg til på Hjem-skjerm».
 - **Android:** Åpne i Chrome → ⋮ → «Installer app».
+
+## Oppdateringer av databasen
+
+Når nye funksjoner trenger endringer i databasen, ligger de som egne filer i `supabase/migrations/`. Kjør hver ny fil én gang i Supabase → SQL Editor:
+
+| Fil | Hva |
+|---|---|
+| `002_logg.sql` | Loggen over hendelser |
+
+(Nye prosjekter får alt ved å kjøre `schema.sql`.)
 
 ## Utvikling
 

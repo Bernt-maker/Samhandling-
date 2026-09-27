@@ -11,6 +11,7 @@ const TABLE_LABEL: Record<string, string> = {
   duties: 'vakt',
   comments: 'kommentar',
   members: 'medlem',
+  events: 'hendelse i loggen',
 };
 const ACTION_LABEL: Record<string, string> = { insert: 'la til', update: 'endret', delete: 'slettet' };
 

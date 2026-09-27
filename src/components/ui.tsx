@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export function Centered({ children }: { children: React.ReactNode }) {
   return (
@@ -33,4 +33,41 @@ export function Modal({ title, onClose, children }: { title: string; onClose: ()
 
 export function Dot({ color }: { color: string }) {
   return <span className="dot" style={{ background: color }} />;
+}
+
+/** Passordfelt med knapp for å vise/skjule det som skrives. */
+export function PasswordInput({
+  value,
+  onChange,
+  autoComplete,
+  autoFocus,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  autoComplete: string;
+  autoFocus?: boolean;
+}) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <span className="password">
+      <input
+        type={visible ? 'text' : 'password'}
+        autoComplete={autoComplete}
+        autoCapitalize="off"
+        autoCorrect="off"
+        spellCheck={false}
+        autoFocus={autoFocus}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      <button
+        type="button"
+        className="ghost small"
+        aria-pressed={visible}
+        onClick={() => setVisible((v) => !v)}
+      >
+        {visible ? 'Skjul' : 'Vis'}
+      </button>
+    </span>
+  );
 }
