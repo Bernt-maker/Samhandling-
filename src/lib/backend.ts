@@ -57,7 +57,8 @@ class SupabaseBackend implements Backend {
 
   constructor(url: string, anonKey: string) {
     this.sb = createClient(url, anonKey, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
+      // detectSessionInUrl: e-poster med lenke i stedet for kode fungerer også
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
     });
   }
 
@@ -76,7 +77,11 @@ class SupabaseBackend implements Backend {
   async sendCode(email: string) {
     const { error } = await this.sb.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: true },
+      options: {
+        shouldCreateUser: true,
+        // Lenker i e-posten skal peke tilbake hit, ikke til Supabase sin standardadresse
+        emailRedirectTo: location.origin + location.pathname,
+      },
     });
     if (error) throw new Error(error.message);
   }

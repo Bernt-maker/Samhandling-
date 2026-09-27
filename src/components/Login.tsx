@@ -60,7 +60,7 @@ export function Login({ backend }: { backend: Backend }) {
       ) : (
         <form onSubmit={verify} className="stack">
           <p>
-            Vi har sendt en kode til <b>{email}</b>.
+            Vi har sendt en e-post til <b>{email}</b>. Skriv inn koden, eller trykk på lenken i e-posten.
             {backend.demo && <> (I demo: <b>{DEMO_CODE}</b>)</>}
           </p>
           <label>
