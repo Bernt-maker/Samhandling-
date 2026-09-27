@@ -19,9 +19,25 @@ type Phase =
   | { k: 'ready'; me: Member; key: CryptoKey };
 
 export function App() {
-  const backend = useMemo(() => createBackend(demoMode), []);
-  if (!backend) return <NotConfigured />;
-  return <Gate backend={backend} />;
+  const result = useMemo(() => {
+    try {
+      return { backend: createBackend(demoMode), error: '' };
+    } catch (e) {
+      return { backend: null, error: (e as Error).message };
+    }
+  }, []);
+  if (result.error)
+    return (
+      <Centered>
+        <h2>Feil i oppsettet</h2>
+        <p>{result.error}</p>
+        <p className="muted small">
+          Rett variablene i GitHub (Settings → Secrets and variables → Actions → Variables) og publiser på nytt.
+        </p>
+      </Centered>
+    );
+  if (!result.backend) return <NotConfigured />;
+  return <Gate backend={result.backend} />;
 }
 
 function Gate({ backend }: { backend: Backend }) {

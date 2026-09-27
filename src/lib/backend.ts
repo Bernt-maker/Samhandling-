@@ -382,13 +382,27 @@ class DemoBackend implements Backend {
   }
 }
 
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+/**
+ * Tåler at verdien er limt inn som hel linje fra Supabase, f.eks.
+ * "NEXT_PUBLIC_SUPABASE_URL=https://…", eller med mellomrom/anførselstegn.
+ */
+export function cleanEnv(value: string | undefined): string {
+  let v = (value ?? '').trim();
+  const eq = v.indexOf('=');
+  if (eq > 0 && /^[A-Z0-9_]+$/.test(v.slice(0, eq))) v = v.slice(eq + 1);
+  return v.trim().replace(/^["']|["']$/g, '').replace(/\/+$/, '');
+}
+
+const url = cleanEnv(import.meta.env.VITE_SUPABASE_URL as string | undefined);
+const anonKey = cleanEnv(import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined);
 
 export const isConfigured = Boolean(url && anonKey);
 
 export function createBackend(demo: boolean): Backend | null {
   if (demo) return new DemoBackend();
-  if (url && anonKey) return new SupabaseBackend(url, anonKey);
-  return null;
+  if (!url || !anonKey) return null;
+  if (!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(url)) {
+    throw new Error(`Ugyldig Supabase-adresse: «${url}». Den skal se slik ut: https://xxxx.supabase.co`);
+  }
+  return new SupabaseBackend(url, anonKey);
 }
