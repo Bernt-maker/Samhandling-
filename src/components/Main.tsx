@@ -6,15 +6,17 @@ import { Overview } from './Overview';
 import { CalendarView } from './CalendarView';
 import { Duties } from './Duties';
 import { Family } from './Family';
+import { LogView } from './LogView';
 import { AppointmentDetail, AppointmentForm } from './Appointment';
 import { Modal } from './ui';
 
-type Tab = 'oversikt' | 'kalender' | 'vakter' | 'familie';
+type Tab = 'oversikt' | 'kalender' | 'logg' | 'vakter' | 'familie';
 type Dialog = null | { k: 'new'; date?: string } | { k: 'view'; id: string } | { k: 'edit'; id: string };
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'oversikt', label: 'Oversikt', icon: '🏠' },
   { id: 'kalender', label: 'Kalender', icon: '📅' },
+  { id: 'logg', label: 'Logg', icon: '📓' },
   { id: 'vakter', label: 'Vakter', icon: '🤝' },
   { id: 'familie', label: 'Familie', icon: '👪' },
 ];
@@ -25,6 +27,7 @@ export interface ViewProps {
   canEdit: boolean;
   openAppointment: (id: string) => void;
   newAppointment: (date?: string) => void;
+  openLog: () => void;
 }
 
 export function Main({
@@ -54,6 +57,7 @@ export function Main({
     canEdit,
     openAppointment: (id) => setDialog({ k: 'view', id }),
     newAppointment: (date) => setDialog({ k: 'new', date }),
+    openLog: () => setTab('logg'),
   };
 
   const current = dialog && dialog.k !== 'new' ? data.appointments.find((a) => a.id === dialog.id) : undefined;
@@ -71,6 +75,7 @@ export function Main({
       <main className="content">
         {tab === 'oversikt' && <Overview {...props} />}
         {tab === 'kalender' && <CalendarView {...props} />}
+        {tab === 'logg' && <LogView {...props} />}
         {tab === 'vakter' && <Duties {...props} />}
         {tab === 'familie' && <Family {...props} backend={backend} onLock={onLock} onSignOut={onSignOut} />}
       </main>

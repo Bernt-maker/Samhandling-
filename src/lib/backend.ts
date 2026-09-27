@@ -3,6 +3,7 @@ import type {
   AppointmentRow,
   AuditRow,
   CommentRow,
+  EventRow,
   DutyRow,
   Member,
   TableName,
@@ -39,6 +40,10 @@ export interface Backend {
   listComments(): Promise<CommentRow[]>;
   addComment(row: CommentRow): Promise<void>;
   deleteComment(id: string): Promise<void>;
+
+  listEvents(): Promise<EventRow[]>;
+  saveEvent(row: EventRow): Promise<void>;
+  deleteEvent(id: string): Promise<void>;
 
   listAudit(limit: number): Promise<AuditRow[]>;
 
@@ -167,6 +172,22 @@ class SupabaseBackend implements Backend {
     check(await this.sb.from('comments').delete().eq('id', id));
   }
 
+  async listEvents() {
+    return check(
+      await this.sb
+        .from('events')
+        .select('id,occurred_at,iv,ct,created_by,updated_by,updated_at')
+        .order('occurred_at', { ascending: false }),
+    ) as EventRow[];
+  }
+  async saveEvent(row: EventRow) {
+    const { id, occurred_at, iv, ct } = row;
+    check(await this.sb.from('events').upsert({ id, occurred_at, iv, ct }));
+  }
+  async deleteEvent(id: string) {
+    check(await this.sb.from('events').delete().eq('id', id));
+  }
+
   async listAudit(limit: number) {
     return check(
       await this.sb.from('audit_log').select('*').order('at', { ascending: false }).limit(limit),
@@ -175,7 +196,7 @@ class SupabaseBackend implements Backend {
 
   subscribe(cb: (table: TableName) => void) {
     const channel = this.sb.channel('family-changes');
-    for (const table of ['members', 'appointments', 'duties', 'comments'] as TableName[]) {
+    for (const table of ['members', 'appointments', 'duties', 'comments', 'events'] as TableName[]) {
       channel.on('postgres_changes', { event: '*', schema: 'public', table }, () => cb(table));
     }
     channel.subscribe();
@@ -196,6 +217,7 @@ interface DemoDb {
   appointments: AppointmentRow[];
   duties: DutyRow[];
   comments: CommentRow[];
+  events?: EventRow[];
   audit: AuditRow[];
 }
 
@@ -370,6 +392,33 @@ class DemoBackend implements Backend {
     if (c.author !== this.email() && this.role() !== 'admin') throw new Error('Du kan bare slette egne kommentarer.');
     db.comments = db.comments.filter((x) => x.id !== id);
     this.save(db, 'comments', id, 'delete');
+  }
+
+  async listEvents() {
+    return this.role() ? [...(this.load().events ?? [])].sort((a, b) => b.occurred_at.localeCompare(a.occurred_at)) : [];
+  }
+  async saveEvent(row: EventRow) {
+    if (!this.role()) throw new Error('Ingen tilgang.');
+    const db = this.load();
+    const events = db.events ?? [];
+    const old = events.find((e) => e.id === row.id);
+    if (old && old.created_by !== this.email() && this.role() !== 'admin')
+      throw new Error('Du kan bare endre egne hendelser.');
+    db.events = events.filter((e) => e.id !== row.id).concat({
+      ...row,
+      created_by: old?.created_by ?? this.email()!,
+      updated_by: this.email()!,
+      updated_at: new Date().toISOString(),
+    });
+    this.save(db, 'events', row.id, old ? 'update' : 'insert');
+  }
+  async deleteEvent(id: string) {
+    const db = this.load();
+    const e = (db.events ?? []).find((x) => x.id === id);
+    if (!e) return;
+    if (e.created_by !== this.email() && this.role() !== 'admin') throw new Error('Du kan bare slette egne hendelser.');
+    db.events = (db.events ?? []).filter((x) => x.id !== id);
+    this.save(db, 'events', id, 'delete');
   }
 
   async listAudit(limit: number) {

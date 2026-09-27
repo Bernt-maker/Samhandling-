@@ -331,7 +331,7 @@ textarea {
   right: 0;
   z-index: 6;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   background: var(--surface);
   border-top: 1px solid var(--line);
   padding-bottom: env(safe-area-inset-bottom);
@@ -693,4 +693,87 @@ textarea {
 }
 .swatch.sel {
   border-color: var(--text);
+}
+
+.password {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.password input {
+  flex: 1;
+  min-width: 0;
+}
+.password button {
+  min-width: 64px;
+}
+
+/* ---------- Logg ---------- */
+
+.chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+.chip {
+  flex: none;
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: 99px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--text);
+  border: 1.5px solid var(--line);
+  white-space: nowrap;
+}
+.chip.active {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+.month-label {
+  text-transform: capitalize;
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 4px 0 8px;
+}
+.event {
+  gap: 12px !important;
+  align-items: flex-start !important;
+}
+.event.important {
+  border-left: 5px solid var(--warn) !important;
+}
+.flag {
+  margin-right: 4px;
+}
+.snippet {
+  margin-top: 4px;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: pre-wrap;
+}
+button.notice.ongoing {
+  display: block;
+  width: 100%;
+  line-height: 1.4;
+  text-align: left;
+  color: var(--text);
+  font-weight: 400;
+  border: 1.5px solid var(--warn);
+  gap: 6px;
+}
+.pill.important {
+  color: var(--warn);
+  background: var(--warn-soft);
+}
+input[type='search'] {
+  -webkit-appearance: none;
+  appearance: none;
 }

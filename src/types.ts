@@ -114,4 +114,44 @@ export interface AuditRow {
   action: string;
 }
 
-export type TableName = 'members' | 'appointments' | 'duties' | 'comments';
+export type TableName = 'members' | 'appointments' | 'duties' | 'comments' | 'events';
+
+export type EventKind =
+  | 'innleggelse'
+  | 'legevakt'
+  | 'telefon'
+  | 'besok'
+  | 'hjemmetjeneste'
+  | 'medisin'
+  | 'fall'
+  | 'helse'
+  | 'annet';
+
+/** Alt i denne strukturen krypteres før det lagres. */
+export interface LogEventData {
+  kind: EventKind;
+  title: string;
+  text: string;
+  /** Sluttdato (YYYY-MM-DD), f.eks. utskrivning. Tom = pågår/ikke relevant. */
+  endDate: string;
+  important: boolean;
+}
+
+export interface LogEvent {
+  id: string;
+  occurredAt: string;
+  data: LogEventData;
+  createdBy: string;
+  updatedBy: string;
+  updatedAt: string;
+}
+
+export interface EventRow {
+  id: string;
+  occurred_at: string;
+  iv: string;
+  ct: string;
+  created_by?: string;
+  updated_by?: string;
+  updated_at?: string;
+}

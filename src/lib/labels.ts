@@ -1,4 +1,4 @@
-import type { AppointmentData, AppointmentKind, AppointmentStatus, Member, Role } from '../types';
+import type { AppointmentData, AppointmentKind, AppointmentStatus, EventKind, LogEventData, Member, Role } from '../types';
 
 export const KIND_LABEL: Record<AppointmentKind, string> = {
   lege: 'Fastlege / lege',
@@ -56,4 +56,36 @@ export function nameOf(members: Member[], idOrEmail: string | null | undefined):
   if (!idOrEmail) return '';
   const m = members.find((x) => x.id === idOrEmail || x.email === idOrEmail);
   return m?.name ?? idOrEmail;
+}
+
+export const EVENT_LABEL: Record<EventKind, string> = {
+  innleggelse: 'Sykehusinnleggelse',
+  legevakt: 'Legevakt / akutt',
+  telefon: 'Telefonsamtale',
+  besok: 'Besøk',
+  hjemmetjeneste: 'Hjemmetjeneste / helsepersonell',
+  medisin: 'Medisinendring',
+  fall: 'Fall / skade',
+  helse: 'Helse / observasjon',
+  annet: 'Annet',
+};
+
+export const EVENT_ICON: Record<EventKind, string> = {
+  innleggelse: '🏥',
+  legevakt: '🚑',
+  telefon: '📞',
+  besok: '🏠',
+  hjemmetjeneste: '🧑‍⚕️',
+  medisin: '💊',
+  fall: '⚠️',
+  helse: '🩺',
+  annet: '📝',
+};
+
+export function emptyEvent(): LogEventData {
+  return { kind: 'telefon', title: '', text: '', endDate: '', important: false };
+}
+
+export function eventTitle(d: LogEventData): string {
+  return d.title.trim() || EVENT_LABEL[d.kind];
 }
